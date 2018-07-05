@@ -1512,6 +1512,32 @@
          <string>Anterior</string>
         </property>
        </widget>
+       <widget class="QPushButton" name="btnRotateLeft">
+        <property name="geometry">
+         <rect>
+          <x>80</x>
+          <y>140</y>
+          <width>51</width>
+          <height>31</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>↶</string>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="btnRotateRight">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>140</y>
+          <width>51</width>
+          <height>31</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>↷</string>
+        </property>
+       </widget>
       </widget>
       <widget class="QGroupBox" name="groupBox">
        <property name="geometry">

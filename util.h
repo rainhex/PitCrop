@@ -1,6 +1,7 @@
 #pragma once
 #include <QList>
 #include <QString>
+#include <QGraphicsPixmapItem>
 
 class Util
 {
@@ -12,4 +13,5 @@ public:
     static QString fileGetFolder(QString url);
     static QString folderGetName(QString path);
     static QString folderGetOuterPath(QString path);
+    static QImage *getRotated(QImage *src, qreal degrees);
 };
