@@ -360,7 +360,7 @@ void MainWindow::spawnCropbox(qreal x, qreal y){
     //spawn cropbox and add to boxes vector
     this->setActiveCrop(new CropBox(x, y, base_width, base_height));
     this->mainScene->addItem(this->getActiveCrop());
-
+    this->getActiveCrop()->activate();
     this->cCrops.insert(this->cCrops.end(), this->getActiveCrop());
     QString s = "X: " + QString::number((int)this->getActiveCrop()->x())
             + " Y: " + QString::number((int)this->getActiveCrop()->y())
