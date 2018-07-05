@@ -43,6 +43,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QCoreApplication::setApplicationName("Zcropper");
 
     this->wList = NULL;
+    this->_image = NULL;
     this->setActiveCrop(NULL);
     this->ui->lstBoxes->setSelectionBehavior(QAbstractItemView::SelectItems);
     this->ui->lstBoxes->setSelectionMode(QAbstractItemView::SingleSelection);
@@ -51,7 +52,7 @@ MainWindow::MainWindow(QWidget *parent) :
     this->ui->lstQuality->setSelectionBehavior(QAbstractItemView::SelectItems);
     this->ui->lstQuality->setSelectionMode(QAbstractItemView::SingleSelection);
 
-    this->image_is_loaded = false;
+    this->setImageLoaded(false);
     this->setUnsaved(false);
 
     //load items into list widgets
@@ -68,53 +69,82 @@ MainWindow::MainWindow(QWidget *parent) :
         ui->lstQuality->addItem(*i);
 }
 
-void MainWindow::loadOntoView(QString ref){
+void MainWindow::loadAndDisplay(QString fileName){
     //if exists, clear scene
-    this->mainScene->clear();
+        this->mainScene->clear();
+        this->setActiveCrop(NULL);
+        this->ui->lstBoxes->blockSignals(true);
+        this->ui->lstBoxes->clear();
+        this->ui->lstBoxes->blockSignals(false);
+        this->ui->lstTags->setCurrentRow(-1);
+        this->ui->lstQuality->setCurrentRow(-1);
+        this->cCrops.clear();
+        if(!fileName.isEmpty()){
+            QImage *image = new QImage(fileName);
+
+            if(image->isNull()){
+                QMessageBox::information(this, "Image Viewer", "Error Displaying image");
+                this->setUnsaved(false);
+                return;
+            }
+            //load and add image
+            QGraphicsPixmapItem *item = new QGraphicsPixmapItem(QPixmap::fromImage(*image));
+            this->mainScene->addItem(item);
+
+            gImageWidth = item->boundingRect().width();
+            gImageHeight = item->boundingRect().height();
+
+            this->ui->lblName->setText(fileName);
+            this->ui->lblHeight->setText(QString::number(gImageHeight));
+            this->ui->lblWidth->setText(QString::number(gImageWidth));
+
+            ui->qgvMain->fitInView(item, Qt::KeepAspectRatio);
+
+            gSceneWidth = this->mainScene->width();
+            gSceneHeight = this->mainScene->height();
+
+            gPixWidth = (int)round((float)gImageHeight/1000.0f);
+            if(gPixWidth <= 0)
+                gPixWidth = 1;
+
+            ui->qgvMain->show();
+            this->setImage(image);
+            this->loadCrops(fileName);
+            this->setImageLoaded(true);
+            this->ui->qgvMain->setFocus();
+        }
+        else
+            this->setImageLoaded(false);
+        this->setUnsaved(false);
+}
+
+void MainWindow::displayImage(QImage *img){
+    if(!img){
+        this->setImageLoaded(false);
+        return;
+    }
+    //load and add image
     this->setActiveCrop(NULL);
-    QString fileName = ref;
+    this->cCrops.clear();
     this->ui->lstBoxes->blockSignals(true);
     this->ui->lstBoxes->clear();
     this->ui->lstBoxes->blockSignals(false);
-    this->ui->lstTags->setCurrentRow(-1);
-    this->ui->lstQuality->setCurrentRow(-1);
-    this->cCrops.clear();
-    if(!fileName.isEmpty()){
-        QImage image(fileName);
 
-        if(image.isNull()){
-            QMessageBox::information(this, "Image Viewer", "Error Displaying image");
-            this->setUnsaved(false);
-            return;
-        }
-        //load and add image
-        QGraphicsPixmapItem *item = new QGraphicsPixmapItem(QPixmap::fromImage(image));
-        this->mainScene->addItem(item);
+    this->mainScene->clear();
+    QGraphicsPixmapItem *item = new QGraphicsPixmapItem(QPixmap::fromImage(*img));
+    this->mainScene->addItem(item);
+    ui->qgvMain->fitInView(item, Qt::KeepAspectRatio);
 
-        gImageWidth = item->boundingRect().width();
-        gImageHeight = item->boundingRect().height();
+    gImageWidth = item->boundingRect().width();
+    gImageHeight = item->boundingRect().height();
 
-        this->ui->lblName->setText(fileName);
-        this->ui->lblHeight->setText(QString::number(gImageHeight));
-        this->ui->lblWidth->setText(QString::number(gImageWidth));
-
-        ui->qgvMain->fitInView(item, Qt::KeepAspectRatio);
-
-        gSceneWidth = this->mainScene->width();
-        gSceneHeight = this->mainScene->height();
-
-        gPixWidth = (int)round((float)gImageHeight/1000.0f);
-        if(gPixWidth <= 0)
-            gPixWidth = 1;
-
-        ui->qgvMain->show();
-        this->loadCrops(fileName);
-        this->image_is_loaded = true;
-        this->ui->qgvMain->setFocus();
-    }
-    else
-        this->image_is_loaded = false;
+    this->ui->lblHeight->setText(QString::number(gImageHeight));
+    this->ui->lblWidth->setText(QString::number(gImageWidth));
+    this->setImageLoaded(true);
     this->setUnsaved(false);
+
+    ui->qgvMain->show();
+    this->ui->qgvMain->setFocus();
 }
 
 void MainWindow::setCategory(int index){
@@ -279,7 +309,7 @@ void MainWindow::on_btnNext_clicked(){
         delete this->getActiveCrop();
         this->setActiveCrop(NULL);
     }
-    loadOntoView(this->wList->getPath());
+    loadAndDisplay(this->wList->getPath());
 }
 
 void MainWindow::on_btnPrev_clicked(){
@@ -307,7 +337,7 @@ void MainWindow::on_btnPrev_clicked(){
         delete this->getActiveCrop();
         this->setActiveCrop(NULL);
     }
-    loadOntoView(this->wList->getPath());
+    loadAndDisplay(this->wList->getPath());
 }
 
 void MainWindow::on_amiSelectFolder_triggered(){
@@ -317,7 +347,7 @@ void MainWindow::on_amiSelectFolder_triggered(){
     this->wList = new imagelist(folderName);
     if(this->wList->isEmpty())
         return;
-    loadOntoView(this->wList->getPath());
+    loadAndDisplay(this->wList->getPath());
 }
 
 void MainWindow::on_actionExit_triggered(){
@@ -342,7 +372,7 @@ void MainWindow::on_actionExit_triggered(){
 }
 
 void MainWindow::spawnCropbox(qreal x, qreal y){
-    if(!this->image_is_loaded)
+    if(!this->isImageLoaded())
         return;
     if(this->getActiveCrop() != NULL)
         this->getActiveCrop()->deactivate();
@@ -445,6 +475,24 @@ void MainWindow::init(){
     }
 }
 
+bool MainWindow::isImageLoaded() const{
+    return this->image_is_loaded;
+}
+
+void MainWindow::setImageLoaded(bool value){
+    this->image_is_loaded = value;
+}
+
+QImage *MainWindow::getImage() const{
+    return this->_image;
+}
+
+void MainWindow::setImage(QImage *image){
+    if(this->_image)
+        delete this->_image;
+    this->_image = image;
+}
+
 void MainWindow::on_btnIncrease_clicked(){
     if(this->getActiveCrop() == NULL)
         return;
@@ -511,4 +559,14 @@ void MainWindow::on_actionOpt_triggered(){
     //open config
     CfgDialog *cfg = new CfgDialog();
     cfg->exec();
+}
+
+void MainWindow::on_btnRotateRight_clicked(){
+    this->setImage(Util::getRotated(this->getImage(), 90));
+    this->displayImage(this->getImage());
+}
+
+void MainWindow::on_btnRotateLeft_clicked(){
+    this->setImage(Util::getRotated(this->getImage(), -90));
+    this->displayImage(this->getImage());
 }

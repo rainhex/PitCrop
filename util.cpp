@@ -3,6 +3,9 @@
 #include <QTextStream>
 #include <QFile>
 #include <QStringList>
+#include <QPixmap>
+#include <QImage>
+#include <QMatrix>
 #include "util.h"
 
 void Util::loadListFromText(QList<QString> *v, QString filepath){
@@ -32,6 +35,15 @@ QString Util::folderGetOuterPath(QString path){
     int slashpos = path.lastIndexOf("/");
     int n = path.size() - slashpos;
     return(path.left(path.size() - n));
+}
+
+QImage *Util::getRotated(QImage *src, qreal degrees){
+    QPoint center = src->rect().center();
+    QMatrix matrix;
+    matrix.translate(center.x(), center.y());
+    matrix.rotate(degrees);
+    QImage dstImg = src->transformed(matrix);
+    return new QImage(dstImg);
 }
 
 QString Util::fileGetExtension(QString path){

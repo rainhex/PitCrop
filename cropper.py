@@ -23,6 +23,7 @@ csv_dir = parent_dir + "/" + source_name + "_csv"
 if args.maxcpu <= 0:
     print("Numero de CPUs no valido.")
     quit()
+    
 
 def csvProcesser(file_uri):
     with open(file_uri, 'rt') as csvfile:
@@ -102,3 +103,4 @@ print("Procesos concurrentes: %i"%(cpu_count))
 #if list is not empty, spawn process pool and begin
 with mp.Pool(cpu_count) as pool:
     pool.map(csvProcesser, csv_bag)
+print("Listo.")
