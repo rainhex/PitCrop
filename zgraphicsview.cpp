@@ -32,8 +32,6 @@ void ZGraphicsView::keyPressEvent(QKeyEvent *event){
         }
             break;
         case Qt::Key_Enter:
-            gWindow->on_btnAccept_clicked();
-            break;
         case Qt::Key_Return:
             gWindow->on_btnAccept_clicked();
             break;

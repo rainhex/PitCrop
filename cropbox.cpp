@@ -22,7 +22,7 @@ CropBox::CropBox(int x, int y, int width, int height) :
 }
 
 void CropBox::mouseMoveEvent(QGraphicsSceneMouseEvent *e){
-    if((e->buttons() & Qt::LeftButton && this->_enabled)){
+    if((e->buttons() & (Qt::LeftButton | Qt::RightButton) && this->_enabled)){
         QGraphicsItem::mouseMoveEvent(e);
         if(this->left() < 0)
             this->setX(0);

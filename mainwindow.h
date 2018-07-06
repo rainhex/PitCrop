@@ -19,7 +19,9 @@ public:
     ~MainWindow();
     explicit MainWindow(QWidget *parent = 0);
     void loadAndDisplay(QString ref);
+    void loadAndDisplay2(QString ref);
     void displayImage(QImage *img);
+    void displayImage2(QImage *img, qreal rotation);
     void setCategory(int index);
     void setQuality(int index);
     void updateList(CropBox *cb);
@@ -71,6 +73,8 @@ private slots:
     void on_btnRotateLeft_clicked();
 
 private:
+    QString getCropboxString(CropBox *b);
+
     Ui::MainWindow *ui;
     imagelist *wList;
     QList<CropBox*> cCrops;
