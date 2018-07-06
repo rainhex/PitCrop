@@ -70,52 +70,172 @@ MainWindow::MainWindow(QWidget *parent) :
 }
 
 void MainWindow::loadAndDisplay(QString fileName){
-    //if exists, clear scene
-        this->mainScene->clear();
-        this->setActiveCrop(NULL);
-        this->ui->lstBoxes->blockSignals(true);
-        this->ui->lstBoxes->clear();
-        this->ui->lstBoxes->blockSignals(false);
-        this->ui->lstTags->setCurrentRow(-1);
-        this->ui->lstQuality->setCurrentRow(-1);
-        this->cCrops.clear();
-        if(!fileName.isEmpty()){
-            QImage *image = new QImage(fileName);
+    this->mainScene->clear();
+    this->setActiveCrop(NULL);
+    this->ui->lstBoxes->blockSignals(true);
+    this->ui->lstBoxes->clear();
+    this->ui->lstBoxes->blockSignals(false);
+    this->ui->lstTags->setCurrentRow(-1);
+    this->ui->lstQuality->setCurrentRow(-1);
+    this->cCrops.clear();
+    if(!fileName.isEmpty()){
+        QImage *image = new QImage(fileName);
 
-            if(image->isNull()){
-                QMessageBox::information(this, "Image Viewer", "Error Displaying image");
-                this->setUnsaved(false);
-                return;
-            }
-            //load and add image
-            QGraphicsPixmapItem *item = new QGraphicsPixmapItem(QPixmap::fromImage(*image));
-            this->mainScene->addItem(item);
-
-            gImageWidth = item->boundingRect().width();
-            gImageHeight = item->boundingRect().height();
-
-            this->ui->lblName->setText(fileName);
-            this->ui->lblHeight->setText(QString::number(gImageHeight));
-            this->ui->lblWidth->setText(QString::number(gImageWidth));
-
-            ui->qgvMain->fitInView(item, Qt::KeepAspectRatio);
-
-            gSceneWidth = this->mainScene->width();
-            gSceneHeight = this->mainScene->height();
-
-            gPixWidth = (int)round((float)gImageHeight/1000.0f);
-            if(gPixWidth <= 0)
-                gPixWidth = 1;
-
-            ui->qgvMain->show();
-            this->setImage(image);
-            this->loadCrops(fileName);
-            this->setImageLoaded(true);
-            this->ui->qgvMain->setFocus();
+        if(image->isNull()){
+            QMessageBox::information(this, "Image Viewer", "Error Displaying image");
+            this->setUnsaved(false);
+            return;
         }
-        else
-            this->setImageLoaded(false);
-        this->setUnsaved(false);
+        //load and add image
+        QGraphicsPixmapItem *item = new QGraphicsPixmapItem(QPixmap::fromImage(*image));
+        this->mainScene->addItem(item);
+
+        gImageWidth = item->boundingRect().width();
+        gImageHeight = item->boundingRect().height();
+
+        this->ui->lblName->setText(fileName);
+        this->ui->lblHeight->setText(QString::number(gImageHeight));
+        this->ui->lblWidth->setText(QString::number(gImageWidth));
+
+        ui->qgvMain->fitInView(item, Qt::KeepAspectRatio);
+
+        gSceneWidth = this->mainScene->width();
+        gSceneHeight = this->mainScene->height();
+
+        gPixWidth = (int)round((float)gImageHeight/1000.0f);
+        if(gPixWidth <= 0)
+            gPixWidth = 1;
+
+        ui->qgvMain->show();
+        this->setImage(image);
+        this->loadCrops(fileName);
+        this->setImageLoaded(true);
+        this->ui->qgvMain->setFocus();
+    }
+    else
+        this->setImageLoaded(false);
+    this->setUnsaved(false);
+}
+
+void MainWindow::loadAndDisplay2(QString imageurl){
+    QString img_folder_path = Util::fileGetFolder(imageurl);
+    QString img_folder_name = Util::folderGetName(img_folder_path);
+    QString img_file_name = Util::fileGetName(imageurl);
+    QString img_file_ext = Util::fileGetExtension(imageurl);
+    QString csvurl = Util::folderGetOuterPath(img_folder_path ) + img_folder_name + "_csv/" + img_file_name + "." + img_file_ext + ".csv";
+    QFile csv(csvurl);
+    csv.open(QIODevice::ReadOnly | QIODevice::Text);
+    qreal degrees = 0;
+    QList<CropBox*> croplist;
+    if(csv.isOpen()){
+        QTextStream qin(&csv);
+        QString line;
+        while(!qin.atEnd()){
+            line = qin.readLine();
+            if(line.at(0) == '#'){
+                degrees = line.right(line.size() - 1).toFloat();
+                continue;
+            }
+            int x = 0, y = 0, w = 0, h = 0;
+            QString tag, quality;
+            QStringList list = line.split(",");
+            for(int i = 0; i < list.size(); ++i){
+                switch(i){
+                    case 0:
+                        x = list.at(i).toInt();
+                        break;
+                    case 1:
+                        y = list.at(i).toInt();
+                        break;
+                    case 2:
+                        w = list.at(i).toInt() - x;
+                        break;
+                    case 3:
+                        h = list.at(i).toInt() - y;
+                        break;
+                    case 4:
+                        tag = list.at(i);
+                        break;
+                    case 5:
+                        quality = list.at(i);
+                }
+            }
+            CropBox *b = new CropBox(x, y, w, h);
+            for(int i = 0; i < this->ui->lstTags->count(); i++){
+                if(this->ui->lstTags->item(i)->text() == tag){
+                    tag = this->ui->lstTags->item(i)->text();
+                    b->setTagIndex(i);
+                    break;
+                }
+            }
+            for(int i = 0; i < this->ui->lstQuality->count(); i++){
+                if(this->ui->lstQuality->item(i)->text() == quality){
+                    quality = this->ui->lstQuality->item(i)->text();
+                    b->setQualityIndex(i);
+                    break;
+                }
+            }
+            croplist.append(b);
+        }
+        csv.close();
+    }
+    //load and display image
+    this->mainScene->clear();
+    this->setActiveCrop(NULL);
+    this->ui->lstBoxes->blockSignals(true);
+    this->ui->lstBoxes->clear();
+    this->ui->lstBoxes->blockSignals(false);
+    this->ui->lstTags->setCurrentRow(-1);
+    this->ui->lstQuality->setCurrentRow(-1);
+    this->cCrops.clear();
+    if(!imageurl.isEmpty()){
+        QImage *image = new QImage(imageurl);
+
+        if(image->isNull()){
+            QMessageBox::information(this, "Image Viewer", "Error Displaying image");
+            this->setUnsaved(false);
+            return;
+        }
+        //load and add image
+        QGraphicsPixmapItem *item = new QGraphicsPixmapItem(QPixmap::fromImage(*image));
+        this->mainScene->addItem(item);
+
+        gImageWidth = item->boundingRect().width();
+        gImageHeight = item->boundingRect().height();
+
+        this->ui->lblName->setText(imageurl);
+        this->ui->lblHeight->setText(QString::number(gImageHeight));
+        this->ui->lblWidth->setText(QString::number(gImageWidth));
+
+        ui->qgvMain->fitInView(item, Qt::KeepAspectRatio);
+
+        gSceneWidth = this->mainScene->width();
+        gSceneHeight = this->mainScene->height();
+
+        gPixWidth = (int)round((float)gImageHeight/1000.0f);
+        if(gPixWidth <= 0)
+            gPixWidth = 1;
+
+        ui->qgvMain->show();
+        this->setImage(image);
+        this->setImageLoaded(true);
+        this->ui->qgvMain->setFocus();
+    }
+    else
+        this->setImageLoaded(false);
+    this->setUnsaved(false);
+    //add csv crops
+    QList<CropBox*>::iterator b;
+    for(b = croplist.begin(); b != croplist.end(); ++b){
+        this->mainScene->addItem(*b);
+
+        this->cCrops.insert(this->cCrops.end(), *b);
+        this->ui->lstBoxes->addItem(this->getCropboxString(*b));
+        this->ui->lstBoxes->setCurrentRow(this->ui->lstBoxes->count() - 1);
+        this->ui->lstTags->setCurrentRow((*b)->getTagIndex());
+        this->ui->lstQuality->setCurrentRow((*b)->getQualityIndex());
+        this->updateList(*b);
+    }
 }
 
 void MainWindow::displayImage(QImage *img){
@@ -569,4 +689,11 @@ void MainWindow::on_btnRotateRight_clicked(){
 void MainWindow::on_btnRotateLeft_clicked(){
     this->setImage(Util::getRotated(this->getImage(), -90));
     this->displayImage(this->getImage());
+}
+
+QString MainWindow::getCropboxString(CropBox *b){
+    return "X: " + QString::number((int)(b->x()))
+            + " Y: " + QString::number((int)b->y())
+            + " | " + this->ui->lstTags->item(b->getTagIndex())->text()
+            + " | " + this->ui->lstQuality->item(b->getQualityIndex())->text();
 }
