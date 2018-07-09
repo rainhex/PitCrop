@@ -3,7 +3,8 @@
 #include <cmath>
 
 CropBox::CropBox(int x, int y, int width, int height) :
-    _pen(Qt::red, gPixWidth, Qt::SolidLine, Qt::SquareCap, Qt::BevelJoin)
+    _pen(Qt::red, gPixWidth, Qt::SolidLine, Qt::SquareCap, Qt::BevelJoin),
+    _rb(x + width - 20, y + height - 20, 20, 20, this)
 {
     this->setX(x);;
     this->setY(y);;
@@ -22,7 +23,7 @@ CropBox::CropBox(int x, int y, int width, int height) :
 }
 
 void CropBox::mouseMoveEvent(QGraphicsSceneMouseEvent *e){
-    if((e->buttons() & (Qt::LeftButton | Qt::RightButton) && this->_enabled)){
+    if((e->buttons() & (Qt::LeftButton) && this->_enabled)){
         QGraphicsItem::mouseMoveEvent(e);
         if(this->left() < 0)
             this->setX(0);
@@ -32,6 +33,11 @@ void CropBox::mouseMoveEvent(QGraphicsSceneMouseEvent *e){
             this->setX(gImageWidth - this->_width);
         if(this->bottom() > gImageHeight)
             this->setY(gImageHeight - this->_height);
+
+        //update resizebox position
+        this->_rb.updatePosition(this->x() + this->_width - this->_rb.rect().width(),
+                                 this->y() + this->_height - this->_rb.rect().height());
+
         gWindow->updateList(this);
         gWindow->setUnsaved(true);
     }
@@ -41,30 +47,10 @@ void CropBox::mousePressEvent(QGraphicsSceneMouseEvent *e){
     QGraphicsItem::mousePressEvent(e);
 }
 
-void CropBox::Redimension(QGraphicsSceneMouseEvent *e){
-    int newsize = ((e->scenePos().x() - this->x()) + (e->scenePos().y() - this->y()))/2;
-    if(!this->_enabled
-            || newsize <= 64
-            || newsize > gImageHeight
-            || newsize > gImageWidth
-            || this->x() + newsize > gSceneWidth
-            || this->y() + newsize > gSceneHeight)
-        return;
-    prepareGeometryChange();
-    this->_width = newsize;
-    this->_height = newsize;
-}
-
 void CropBox::resize(int new_w, int new_h){
-    if(!this->_enabled
-            || new_w < 256
-            || new_h < 256
-            || new_h > gImageHeight
-            || new_w > gImageWidth)
-        return;
-
     if(this->_width == new_w && this->_height == new_h)
         return;
+
     this->_width = new_w;
     this->_height = new_h;
 
@@ -79,6 +65,7 @@ void CropBox::resize(int new_w, int new_h){
 
     prepareGeometryChange();
     gWindow->setUnsaved(true);
+    gWindow->updateList(this);
 }
 
 bool CropBox::isActive(){
@@ -87,6 +74,8 @@ bool CropBox::isActive(){
 
 void CropBox::activate(){
     this->_pen = QPen(Qt::red);
+    this->_rb.setBrush(QBrush(Qt::red));
+    this->_rb.setPen(QPen(Qt::red));
     this->_enabled = true;
     this->setZValue(1);
     prepareGeometryChange();
@@ -96,9 +85,15 @@ void CropBox::activate(){
 
 void CropBox::deactivate(){
     this->_pen = QPen(Qt::white);
+    this->_rb.setBrush(QBrush(Qt::white));
+    this->_rb.setPen(QPen(Qt::white));
     this->_enabled = false;
     this->setZValue(0);
     prepareGeometryChange();
+}
+
+ResizeBox *CropBox::getRB(){
+    return &this->_rb;
 }
 
 int CropBox::right(){
@@ -126,17 +121,17 @@ int CropBox::height(){
 }
 
 void CropBox::setQualityIndex(int index){
-    if(this->quality_index == index)
-        return;
-    this->quality_index = index;
-    gWindow->setUnsaved(true);
+    if(this->quality_index != index){
+        this->quality_index = index;
+        gWindow->setUnsaved(true);
+    }
 }
 
 void CropBox::setTagIndex(int index){
-    if(this->category_index == index)
-        return;
-    this->category_index = index;
-    gWindow->setUnsaved(true);
+    if(this->category_index != index){
+        this->category_index = index;
+        gWindow->setUnsaved(true);
+    }
 }
 
 int CropBox::getQualityIndex(){
@@ -170,10 +165,14 @@ void CropBox::increaseSize(){
 
     this->resize(new_w, new_h);
     this->self_multiplier = s;
+
+    //update resizebox position
+    this->_rb.updatePosition(this->x() + this->_width - this->_rb.rect().width(),
+                             this->y() + this->_height - this->_rb.rect().height());
 }
 
 void CropBox::decreaseSize(){
-    int s = this->self_multiplier-1;
+    int s = this->self_multiplier - 1;
     if(s < 0){
         this->resize(base_width, base_height);
         return;
@@ -197,6 +196,10 @@ void CropBox::decreaseSize(){
 
     this->resize(new_w, new_h);
     this->self_multiplier = s;
+
+    //update resizebox position
+    this->_rb.updatePosition(this->x() + this->_width - this->_rb.rect().width(),
+                             this->y() + this->_height - this->_rb.rect().height());
 }
 
 CropBox::~CropBox(){

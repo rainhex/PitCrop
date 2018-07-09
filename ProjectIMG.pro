@@ -36,7 +36,8 @@ SOURCES += \
     globals.cpp \
     util.cpp \
     cfgdialog.cpp \
-    zgraphicsview.cpp
+    zgraphicsview.cpp \
+    resizebox.cpp
 
 HEADERS += \
 		mainwindow.h \
@@ -45,7 +46,8 @@ HEADERS += \
     globals.h \
     util.h \
     cfgdialog.h \
-    zgraphicsview.h
+    zgraphicsview.h \
+    resizebox.h
 
 FORMS += \
 		mainwindow.ui \

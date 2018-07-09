@@ -3,6 +3,7 @@
 #include <QGraphicsSceneMouseEvent>
 #include <QPen>
 #include <QKeyEvent>
+#include "resizebox.h"
 
 class CropBox : public QGraphicsItem
 {
@@ -11,11 +12,11 @@ public:
     ~CropBox();
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
     QRectF boundingRect() const;
-    void Redimension(QGraphicsSceneMouseEvent *e);
     void resize(int new_w, int new_h);
     bool isActive();
     void activate();
     void deactivate();
+    ResizeBox *getRB();
 
     //edge functions
     int right();
@@ -35,6 +36,7 @@ private:
     int _height;
     bool _enabled;
     QPen _pen;
+    ResizeBox _rb;
     int category_index;
     int quality_index;
     int self_multiplier;
