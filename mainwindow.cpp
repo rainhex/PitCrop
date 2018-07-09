@@ -114,6 +114,10 @@ void MainWindow::loadAndDisplay(QString imageurl){
                         quality = list.at(i);
                 }
             }
+            gQout << "X = " << x << ", Y = " << y << "\n";
+            gQout << "W = " << w << ", H = " << h << "\n";
+            gQout.flush();
+
             CropBox *b = new CropBox(x, y, w, h);
             for(int i = 0; i < this->ui->lstTags->count(); i++){
                 if(this->ui->lstTags->item(i)->text() == tag){
@@ -129,6 +133,8 @@ void MainWindow::loadAndDisplay(QString imageurl){
                     break;
                 }
             }
+            gQout << "W = " << b->width() << ", H = " << b->height() << "\n";
+            gQout.flush();
             croplist.append(b);
         }
         csv.close();
@@ -197,6 +203,7 @@ void MainWindow::loadAndDisplay(QString imageurl){
         this->ui->lstQuality->setCurrentRow((*b)->getQualityIndex());
         this->updateList(*b);
     }
+    this->ui->qgvMain->show();
 }
 
 void MainWindow::displayImage(QImage *img){
@@ -468,6 +475,8 @@ void MainWindow::init(){
     base_height = gSettings->value("base_height").toInt();
     width_multiplier = gSettings->value("width_multiplier").toInt();
     height_multiplier = gSettings->value("height_multiplier").toInt();
+    w_to_h_ratio = (float)base_width/(float)base_height;
+    h_to_w_ratio = (float)base_height/(float)base_width;
 
     if(base_width == 0
             || base_height == 0

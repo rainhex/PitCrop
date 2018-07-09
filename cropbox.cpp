@@ -1,5 +1,6 @@
 #include "cropbox.h"
 #include "globals.h"
+#include "util.h"
 #include <cmath>
 
 CropBox::CropBox(int x, int y, int width, int height) :
@@ -8,12 +9,16 @@ CropBox::CropBox(int x, int y, int width, int height) :
 {
     this->setX(x);;
     this->setY(y);;
-    this->_width = width <= gImageWidth? width : gImageWidth;
-    this->_height = height <= gImageHeight? height : gImageHeight;
+    this->_width = width;
+    this->_height = height;
     this->_enabled = true;
     this->setFlag(QGraphicsItem::ItemIsMovable, true);
     this->category_index = -1;
     this->quality_index = -1;
+
+    gQout << "building cb width " << width << " height " << height << "\n";
+    gQout << "building cb width " << this->width() << " height " << this->height() << "\n";
+    gQout.flush();
 
     int w_mult = (ceil(this->_width/base_width))-1;
     int h_mult = (ceil(this->_height/base_height))-1;
@@ -51,8 +56,8 @@ void CropBox::resize(int new_w, int new_h){
     if(this->_width == new_w && this->_height == new_h)
         return;
 
-    this->_width = new_w;
-    this->_height = new_h;
+    this->_width = Util::clamp(new_w, base_width, gImageWidth);
+    this->_height= Util::clamp(new_h, base_height, gImageHeight);
 
     if(this->x() + new_w >= gImageWidth)
         this->setX(gImageWidth - new_w);
