@@ -16,10 +16,6 @@ CropBox::CropBox(int x, int y, int width, int height) :
     this->category_index = -1;
     this->quality_index = -1;
 
-    gQout << "building cb width " << width << " height " << height << "\n";
-    gQout << "building cb width " << this->width() << " height " << this->height() << "\n";
-    gQout.flush();
-
     int w_mult = (ceil(this->_width/base_width))-1;
     int h_mult = (ceil(this->_height/base_height))-1;
 
