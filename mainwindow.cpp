@@ -138,7 +138,6 @@ void MainWindow::loadAndDisplay(QString imageurl){
         gPixWidth = 1;
 
     //load data from CSV file (if any)
-    csv.seek(0);
     QList<CropBox*> croplist;
     if(csv.isOpen()){
         QTextStream qin(&csv);
