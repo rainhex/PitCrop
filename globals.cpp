@@ -16,4 +16,5 @@ int base_width = 0;
 int base_height = 0;
 int width_multiplier = 0;
 int height_multiplier = 0;
-//QApplication *qApp = NULL;
+qreal w_to_h_ratio = 0;
+qreal h_to_w_ratio = 0;

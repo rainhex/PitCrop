@@ -14,4 +14,5 @@ public:
     static QString folderGetName(QString path);
     static QString folderGetOuterPath(QString path);
     static QImage *getRotated(QImage *src, qreal degrees);
+    static int clamp(int value, int min, int max);
 };

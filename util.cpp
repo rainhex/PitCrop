@@ -59,3 +59,12 @@ QString Util::fileGetFolder(QString url){
     int slashpos = url.lastIndexOf("/");
     return url.left(slashpos);
 }
+
+int Util::clamp(int value, int min, int max){
+    if(value < min)
+        return min;
+    if(value > max)
+        return max;
+    return value;
+
+}

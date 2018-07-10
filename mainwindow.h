@@ -19,14 +19,12 @@ public:
     ~MainWindow();
     explicit MainWindow(QWidget *parent = 0);
     void loadAndDisplay(QString ref);
-    void loadAndDisplay2(QString ref);
     void displayImage(QImage *img);
     void displayImage2(QImage *img, qreal rotation);
     void setCategory(int index);
     void setQuality(int index);
     void updateList(CropBox *cb);
     void writeOutCrops();
-    void loadCrops(QString imageurl);
     void spawnCropbox(qreal x, qreal y);
     void closeEvent(QCloseEvent *e);
     bool unsavedChanges() const;
@@ -37,6 +35,8 @@ public:
     void setImage(QImage *image);
     bool isImageLoaded() const;
     void setImageLoaded(bool value);
+    qreal getImageRotation() const;
+    void setImageRotation(const int &value);
 
 public slots:
     void on_btnIncrease_clicked(); //Q
@@ -74,7 +74,7 @@ private slots:
 
 private:
     QString getCropboxString(CropBox *b);
-
+    int image_rotation;
     Ui::MainWindow *ui;
     imagelist *wList;
     QList<CropBox*> cCrops;

@@ -20,4 +20,5 @@ extern int base_height;
 extern int width_multiplier;
 extern int height_multiplier;
 extern int gPixWidth;
-//extern QApplication *qApp;
+extern qreal w_to_h_ratio;
+extern qreal h_to_w_ratio;
