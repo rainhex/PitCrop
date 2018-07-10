@@ -9,7 +9,7 @@ bool exit_app = false;
 QGraphicsScene *gScene = NULL;
 ZGraphicsView *gView = NULL;
 MainWindow *gWindow = NULL;
-QSettings *gSettings;
+QSettings *gSettings = NULL;
 QTextStream gQout(stdout);
 
 int base_width = 0;
@@ -18,3 +18,5 @@ int width_multiplier = 0;
 int height_multiplier = 0;
 qreal w_to_h_ratio = 0;
 qreal h_to_w_ratio = 0;
+QImage *gLoadedImage = NULL;
+QGraphicsPixmapItem *gPixmap = NULL;

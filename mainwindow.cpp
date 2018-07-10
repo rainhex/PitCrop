@@ -78,9 +78,19 @@ void MainWindow::loadAndDisplay(QString imageurl){
     QString csvurl = Util::folderGetOuterPath(img_folder_path ) + img_folder_name + "_csv/" + img_file_name + "." + img_file_ext + ".csv";
     QFile csv(csvurl);
     csv.open(QIODevice::ReadOnly | QIODevice::Text);
+
+    //clear GUI
+    this->mainScene->clear();
+    this->setActiveCrop(NULL);
+    this->ui->lstBoxes->blockSignals(true);
+    this->ui->lstBoxes->clear();
+    this->ui->lstBoxes->blockSignals(false);
+    this->ui->lstTags->setCurrentRow(-1);
+    this->ui->lstQuality->setCurrentRow(-1);
+    this->cCrops.clear();
+
+    //pass csv once to check if image needs to be rotated
     int degrees = 0;
-    QList<CropBox*> croplist;
-    //load data from CSV file (if any)
     if(csv.isOpen()){
         QTextStream qin(&csv);
         QString line;
@@ -88,8 +98,54 @@ void MainWindow::loadAndDisplay(QString imageurl){
             line = qin.readLine();
             if(line.at(0) == '#'){
                 degrees = line.right(line.size() - 1).toInt();
-                continue;
+                break;
             }
+        }
+    }
+
+    //load and display image
+    QImage *image = new QImage(imageurl);
+    if(image->isNull()){
+        QMessageBox::information(this, "Image Viewer", "Error Displaying image");
+        this->setImageLoaded(false);
+        this->setUnsaved(false);
+        return;
+    }
+    //rotate image if necessary
+    if(degrees != 0){
+        QImage *temp = image;
+        image = Util::getRotated(image, degrees);
+        delete temp;
+    }
+    QGraphicsPixmapItem *item = new QGraphicsPixmapItem(QPixmap::fromImage(*image));
+    gPixmap = item;
+    this->mainScene->addItem(item);
+
+    gImageWidth = item->boundingRect().width();
+    gImageHeight = item->boundingRect().height();
+
+    this->ui->lblName->setText(imageurl);
+    this->ui->lblHeight->setText(QString::number(gImageHeight));
+    this->ui->lblWidth->setText(QString::number(gImageWidth));
+
+    ui->qgvMain->fitInView(item, Qt::KeepAspectRatio);
+
+    gSceneWidth = this->mainScene->width();
+    gSceneHeight = this->mainScene->height();
+
+    gPixWidth = (int)round((float)gImageHeight/1000.0f);
+    if(gPixWidth <= 0)
+        gPixWidth = 1;
+
+    //load data from CSV file (if any)
+    QList<CropBox*> croplist;
+    if(csv.isOpen()){
+        QTextStream qin(&csv);
+        QString line;
+        while(!qin.atEnd()){
+            line = qin.readLine();
+            if(line.at(0) == '#')
+                continue;
             int x = 0, y = 0, w = 0, h = 0;
             QString tag, quality;
             QStringList list = line.split(",");
@@ -114,9 +170,6 @@ void MainWindow::loadAndDisplay(QString imageurl){
                         quality = list.at(i);
                 }
             }
-            gQout << "X = " << x << ", Y = " << y << "\n";
-            gQout << "W = " << w << ", H = " << h << "\n";
-            gQout.flush();
 
             CropBox *b = new CropBox(x, y, w, h);
             for(int i = 0; i < this->ui->lstTags->count(); i++){
@@ -133,54 +186,10 @@ void MainWindow::loadAndDisplay(QString imageurl){
                     break;
                 }
             }
-            gQout << "W = " << b->width() << ", H = " << b->height() << "\n";
-            gQout.flush();
             croplist.append(b);
         }
         csv.close();
     }
-    //clear GUI
-    this->mainScene->clear();
-    this->setActiveCrop(NULL);
-    this->ui->lstBoxes->blockSignals(true);
-    this->ui->lstBoxes->clear();
-    this->ui->lstBoxes->blockSignals(false);
-    this->ui->lstTags->setCurrentRow(-1);
-    this->ui->lstQuality->setCurrentRow(-1);
-    this->cCrops.clear();
-
-    //load and add image
-    QImage *image = new QImage(imageurl);
-    if(image->isNull()){
-        QMessageBox::information(this, "Image Viewer", "Error Displaying image");
-        this->setImageLoaded(false);
-        this->setUnsaved(false);
-        return;
-    }
-    //rotate image if necessary
-    if(degrees != 0){
-        QImage *temp = image;
-        image = Util::getRotated(image, degrees);
-        delete temp;
-    }
-    QGraphicsPixmapItem *item = new QGraphicsPixmapItem(QPixmap::fromImage(*image));
-    this->mainScene->addItem(item);
-
-    gImageWidth = item->boundingRect().width();
-    gImageHeight = item->boundingRect().height();
-
-    this->ui->lblName->setText(imageurl);
-    this->ui->lblHeight->setText(QString::number(gImageHeight));
-    this->ui->lblWidth->setText(QString::number(gImageWidth));
-
-    ui->qgvMain->fitInView(item, Qt::KeepAspectRatio);
-
-    gSceneWidth = this->mainScene->width();
-    gSceneHeight = this->mainScene->height();
-
-    gPixWidth = (int)round((float)gImageHeight/1000.0f);
-    if(gPixWidth <= 0)
-        gPixWidth = 1;
 
     ui->qgvMain->show();
     this->ui->qgvMain->setFocus();
@@ -406,7 +415,6 @@ void MainWindow::spawnCropbox(qreal x, qreal y){
     this->mainScene->addItem(newbox);
     this->mainScene->addItem(newbox->getRB());
     this->getActiveCrop()->activate();
-    gQout << __LINE__;
     this->cCrops.insert(this->cCrops.end(), newbox);
     this->ui->lstBoxes->addItem(this->getCropboxString(newbox));
     this->ui->lstBoxes->setCurrentRow(this->ui->lstBoxes->count() - 1);
@@ -581,6 +589,7 @@ void MainWindow::on_btnRotateRight_clicked(){
     this->displayImage(this->getImage());
     this->setImageRotation(this->getImageRotation() + 90);
     this->ui->lblRotation->setText(QString::number(this->getImageRotation()));
+    this->setUnsaved(true);
 }
 
 void MainWindow::on_btnRotateLeft_clicked(){
@@ -588,6 +597,14 @@ void MainWindow::on_btnRotateLeft_clicked(){
     this->displayImage(this->getImage());
     this->setImageRotation(this->getImageRotation() - 90);
     this->ui->lblRotation->setText(QString::number(this->getImageRotation()));
+    this->setUnsaved(true);
+}
+
+void MainWindow::resizeEvent(QResizeEvent *e){
+    if(gPixmap != NULL){
+        ui->qgvMain->fitInView(gPixmap, Qt::KeepAspectRatio);
+        ui->qgvMain->show();
+    }
 }
 
 QString MainWindow::getCropboxString(CropBox *b){

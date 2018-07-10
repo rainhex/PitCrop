@@ -1,5 +1,7 @@
 #pragma once
+#include <QImage>
 #include <QGraphicsScene>
+#include <QGraphicsPixmapItem>
 #include <QTextStream>
 #include <QSettings>
 #include "mainwindow.h"
@@ -22,3 +24,5 @@ extern int height_multiplier;
 extern int gPixWidth;
 extern qreal w_to_h_ratio;
 extern qreal h_to_w_ratio;
+extern QImage *gLoadedImage;
+extern QGraphicsPixmapItem *gPixmap;

@@ -2,6 +2,7 @@
 #include <QListWidget>
 #include <QMainWindow>
 #include <QGraphicsScene>
+#include <QResizeEvent>
 #include <QList>
 #include <QImage>
 #include <imagelist.h>
@@ -73,6 +74,7 @@ private slots:
     void on_btnRotateLeft_clicked();
 
 private:
+    void resizeEvent(QResizeEvent *e);
     QString getCropboxString(CropBox *b);
     int image_rotation;
     Ui::MainWindow *ui;
