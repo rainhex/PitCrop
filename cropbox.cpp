@@ -2,11 +2,15 @@
 #include "globals.h"
 #include "util.h"
 #include <cmath>
+#define RBW(x) (int)(x * 18)
 
 CropBox::CropBox(int x, int y, int width, int height) :
     _pen(Qt::red, gPixWidth, Qt::SolidLine, Qt::SquareCap, Qt::BevelJoin),
-    _rb(x + width - 20, y + height - 20, 20, 20, this)
+    _rb(x + width - RBW(gPixWidth), y + height - RBW(gPixWidth), RBW(gPixWidth), RBW(gPixWidth), this)
 {
+    gQout << "Pixel width: " << gPixWidth << "\n";
+    gQout.flush();
+
     this->setX(x);;
     this->setY(y);;
     this->_width = width;
