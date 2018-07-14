@@ -66,5 +66,4 @@ int Util::clamp(int value, int min, int max){
     if(value > max)
         return max;
     return value;
-
 }

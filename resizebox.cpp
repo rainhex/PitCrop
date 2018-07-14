@@ -13,10 +13,14 @@ ResizeBox::ResizeBox(int x, int y, int w, int h, CropBox *parent){
 }
 
 void ResizeBox::updatePosition(int x, int y){
-    if(x < this->_parent->x() + base_width - this->rect().width()) x = this->_parent->x() + base_width - this->rect().width();
-    if(y < this->_parent->y() + base_height - this->rect().height()) y = this->_parent->y() + base_height - this->rect().height();
-    if(x > gImageWidth - this->rect().width()) x = gImageWidth - this->rect().width();
-    if(y > gImageHeight - this->rect().height()) y = gImageHeight - this->rect().height();
+    if(x < this->_parent->x() + base_width - this->rect().width())
+        x = this->_parent->x() + base_width - this->rect().width();
+    if(y < this->_parent->y() + base_height - this->rect().height())
+        y = this->_parent->y() + base_height - this->rect().height();
+    if(x > gImageWidth - this->rect().width())
+        x = gImageWidth - this->rect().width();
+    if(y > gImageHeight - this->rect().height())
+        y = gImageHeight - this->rect().height();
     this->setRect(x, y, this->rect().width(), this->rect().height());
 }
 
@@ -29,8 +33,7 @@ void ResizeBox::mouseMoveEvent(QGraphicsSceneMouseEvent *e){
 
         int mx_dist = mouse_x - this->_parent->x();
         int my_dist = mouse_y - this->_parent->y();
-        nw = (int)(mx_dist+my_dist)/2;
-        nh = nw;
+        nh = nw = (int)(mx_dist+my_dist)/2;
 
         if(nw > gImageWidth)
             nw = gImageWidth;
@@ -44,7 +47,6 @@ void ResizeBox::mouseMoveEvent(QGraphicsSceneMouseEvent *e){
         this->_parent->resize(nw, nh);
         this->updatePosition(this->_parent->x() + this->_parent->width() - this->rect().width(),
                              this->_parent->y() + this->_parent->height() - this->rect().height());
-        //this->_parent->resize(nw, nh);
         prepareGeometryChange();
     }
 }

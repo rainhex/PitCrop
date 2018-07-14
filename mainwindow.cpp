@@ -137,9 +137,15 @@ void MainWindow::loadAndDisplay(QString imageurl){
     if(gPixWidth <= 0)
         gPixWidth = 1;
 
+    this->setImage(image);
+    this->setImageLoaded(true);
+    this->setImageRotation(degrees);
+    this->ui->lblRotation->setText(QString::number(degrees));
+
     //load data from CSV file (if any)
     QList<CropBox*> croplist;
     if(csv.isOpen()){
+        csv.seek(0);
         QTextStream qin(&csv);
         QString line;
         while(!qin.atEnd()){
@@ -191,14 +197,6 @@ void MainWindow::loadAndDisplay(QString imageurl){
         csv.close();
     }
 
-    ui->qgvMain->show();
-    this->ui->qgvMain->setFocus();
-    this->setImage(image);
-    this->setImageLoaded(true);
-    this->setUnsaved(false);
-    this->setImageRotation(degrees);
-    this->ui->lblRotation->setText(QString::number(degrees));
-
     //add csv crops
     QList<CropBox*>::iterator b;
     for(b = croplist.begin(); b != croplist.end(); ++b){
@@ -212,6 +210,8 @@ void MainWindow::loadAndDisplay(QString imageurl){
         this->ui->lstQuality->setCurrentRow((*b)->getQualityIndex());
         this->updateList(*b);
     }
+    this->setUnsaved(false);
+    this->ui->qgvMain->setFocus();
     this->ui->qgvMain->show();
 }
 
@@ -238,7 +238,6 @@ void MainWindow::displayImage(QImage *img){
     this->ui->lblHeight->setText(QString::number(gImageHeight));
     this->ui->lblWidth->setText(QString::number(gImageWidth));
     this->setImageLoaded(true);
-    this->setUnsaved(false);
 
     ui->qgvMain->show();
     this->ui->qgvMain->setFocus();
@@ -492,7 +491,6 @@ void MainWindow::init(){
             || height_multiplier == 0
             || !qltyfile.exists()
             || !tagsfile.exists()){
-        //open config
         CfgDialog *cfg = new CfgDialog();
         cfg->exec();
     }
@@ -579,7 +577,6 @@ void MainWindow::on_lstQuality_itemSelectionChanged(){
 }
 
 void MainWindow::on_actionOpt_triggered(){
-    //open config
     CfgDialog *cfg = new CfgDialog();
     cfg->exec();
 }

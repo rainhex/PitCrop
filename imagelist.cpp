@@ -5,8 +5,7 @@
 #include <QTextStream>
 
 imagelist::imagelist(QString folder){
-    QString qfolder = folder;
-    this->_list = this->getImagePaths(qfolder);
+    this->_list = this->getImagePaths(folder);
     this->_position = 0;
     this->currentFolder = folder;
 }
