@@ -65,6 +65,9 @@ def csvProcesser(filepath: str):
                 elif tl_pixel is None:
                     tl_pixel = tuple(int(x) for x in row[0][1:].split(':'))
 
+        if br_pixel is None:
+            return
+
         br_pixel2 = tuple([img[img_h - 1, img_w - 1, 0], img[img_h - 1, img_w - 1, 1], img[img_h - 1, img_w - 1, 2]])
         bl_pixel2 = tuple([img[img_h - 1, 0, 0], img[img_h - 1, 0, 1], img[img_h - 1, 0, 2]])
         tr_pixel2 = tuple([img[0, img_w - 1, 0], img[0, img_w - 1, 1], img[0, img_w - 1, 2]])
@@ -82,7 +85,7 @@ def csvProcesser(filepath: str):
             tr_pixel2 = tuple([img[0, img_w - 1, 0], img[0, img_w - 1, 1], img[0, img_w - 1, 2]])
             tl_pixel2 = tuple([img[0, 0, 0], img[0, 0, 1], img[0, 0, 2]])
 
-        if spins == 0:
+        if spins <= 0:
             return
         print(spins, '->', filepath)
         #return
@@ -163,6 +166,7 @@ def main():
     # if list is not empty, spawn process pool and begin
     with mp.Pool(cpu_count) as pool:
         pool.map(csvProcesser, csv_list)
+
     print('Listo.')
 
 

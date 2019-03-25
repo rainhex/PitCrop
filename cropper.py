@@ -7,12 +7,15 @@ import math
 import argparse
 import numpy as np
 import multiprocessing as mp
+from shutil import rmtree
 
 parser = argparse.ArgumentParser()
 parser.add_argument('src', help='carpeta donde se encuentran las imagenes de origen', type=str)
 parser.add_argument('--max-cpu', '-m', action='store', dest='maxcpu', help='numero maximo de procesos permitidos', type=int, default=mp.cpu_count())
 parser.add_argument('--quality', '-q', action='store', dest='quality', help='calidad de los recortes', type=str, nargs='+')
 parser.add_argument('--tags', '-t', action='store', dest='tags', help='etiquetas de los recortes', type=str, nargs='+')
+parser.add_argument('--minimum', type=int, help='eliminar recortes menores a esta cantidad', default=0)
+parser.add_argument('--maximum', type=int, help='rasurar carpetas donde el numero de archivos sea mayor que N', default=0)
 args = parser.parse_args()
 
 got_tags = False
@@ -31,7 +34,7 @@ def csvProcesser(filedata: tuple):
     with open(filepath, 'rt') as csvfile:
         csvdata = csv.reader(csvfile, delimiter=',')
         crop_count = 1
-        img_path = filepath[:-4].replace('_csv', '')
+        img_path = filepath[:-4].replace('_csv', '').replace('*', '')
 
         slashpos = filepath.rfind('/')
         stol_dot = filepath[:-4].rfind('.')
@@ -128,6 +131,14 @@ def main():
     # if list is not empty, spawn process pool and begin
     with mp.Pool(cpu_count) as pool:
         pool.map(csvProcesser, csv_list)
+
+    if args.minimum > 0:
+        for entry in os.listdir(out_parent_dirname):
+            target_folder = out_parent_dirname + '/' + entry
+            n = len([f for f in os.listdir(target_folder)])
+            if n < args.minimum:
+                rmtree(target_folder)
+
     print('Listo.')
 
 
