@@ -34,7 +34,7 @@ def csvProcesser(filedata: tuple):
     with open(filepath, 'rt') as csvfile:
         csvdata = csv.reader(csvfile, delimiter=',')
         crop_count = 1
-        img_path = filepath[:-4].replace('_csv', '').replace('*', '')
+        img_path = filepath[:-4].replace('_csv', '')
 
         slashpos = filepath.rfind('/')
         stol_dot = filepath[:-4].rfind('.')
@@ -42,6 +42,15 @@ def csvProcesser(filedata: tuple):
         img_extension = filepath[stol_dot:-4]
 
         img = cv2.imread(img_path)
+        
+        if img is None:
+            l = filepath[:-4].replace('_csv', '').split('/')
+            l[-2] = l[-2]+'*'
+            img_path = '/'.join(l)
+            img = cv2.imread(img_path)
+            if img is None:
+                print('Couldn\'t open {}'.format(img_path))
+                return
 
         # work out necessary rotations...
         rotations = 0
@@ -132,12 +141,12 @@ def main():
     with mp.Pool(cpu_count) as pool:
         pool.map(csvProcesser, csv_list)
 
-    if args.minimum > 0:
+    '''if args.minimum > 0:
         for entry in os.listdir(out_parent_dirname):
             target_folder = out_parent_dirname + '/' + entry
             n = len([f for f in os.listdir(target_folder)])
             if n < args.minimum:
-                rmtree(target_folder)
+                rmtree(target_folder)'''
 
     print('Listo.')
 
